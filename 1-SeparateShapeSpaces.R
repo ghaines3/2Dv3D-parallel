@@ -15,13 +15,14 @@ devtools::session_info()
 git2r::repository()
 sink()
 
-# 0) Importing data
-ldmk.list<-file.path("~.",
-                     list<-list.files(path = "~.", 
-                                      pattern = ".pp", recursive = F))#Reads filepaths for each specimen's landmark file into list
+# 0.1) Importing landmark data 
+###### IF USING LANDMARK FILE SUPPLIED IN DRYAD FILES, SKIP 0.1 AND 2.0-2.1.
+###### DOWNLOAD OF .TPS LANDMARK FILE IS AT 2.15.
+ldmk.list<-file.path<-list.files(pattern = ".pp", recursive = F)#Reads filepaths for each specimen's landmark file into list
 ldmk.array<-lapply(ldmk.list, read.mpp)#Reads landmarks from meshlab pickpoints files into list of PxK matrices (converted to array later)
       # note that these landmark files include landmarks that were not included in analysis
-ldmk.factors<-read.csv("ldmk_factors.csv")#Reads Non-landmark specimen data (ID, population, habitat, watershed) into DF.
+
+# 0.2) Factors for specs (ID, Habitat, Watershed, etc.)ldmk.factors<-read.csv("ldmk_factors.csv")#Reads Non-landmark specimen data (ID, population, habitat, watershed) into DF.
 ldmk.factors.long<-read.csv("ldmk_factors_ext.csv")#Same as above but double length and with factor for specimen side.
 
 #Reads diet data into DF, and makes specs rownames
@@ -139,6 +140,18 @@ clean.specs<-function(spec.list, spec.names)
 # 2.1) Uses clean.specs() to convert full landmark set to 3D array
 spec.array<-clean.specs(ldmk.array,ldmk.factors$Spec)
 spec.array[spec.array ==0]<-NA #replaces zeros (missing landmarks) w/ NAs#
+##
+#
+writeland.tps(spec.array[c("C14","C19","C.3","C.4","C.5","LvOp","LOp","L12","L11",
+                                        "L6","L2","L3","L10","L13","RvOp","ROp","R12","R11",
+                                        "R6","R2","R3","R10","R13"),,],"VI_2D3D-land.tps", specID = T)
+
+# 2.15) to import landmark set provided in publication data
+spec.array<-readland.tps("VI_2D3D-land.tps",specID="ID") #produces warning, but can be ignored b/c coords already scaled
+rownames(spec.array)<-c("C14","C19","C.3","C.4","C.5","LvOp","LOp","L12","L11",
+                        "L6","L2","L3","L10","L13","RvOp","ROp","R12","R11",
+                        "R6","R2","R3","R10","R13")
+
 
 # 2.2) Replaces NAs in row 2 of three specimens w/ mean coords of other 
 #4 ldmks used to define plane for rotation in lever shape landmarks
